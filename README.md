@@ -367,4 +367,4 @@ Cuối cùng là file route.web
     });
 ```
 
-Giờ thì hãy vào url '/page' tr
+Giờ thì hãy vào url '/page' trên localhost của bạn và chiêm ngưỡng thành quả nhé. 
