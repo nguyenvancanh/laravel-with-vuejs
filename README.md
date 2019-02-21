@@ -195,3 +195,176 @@ Hãy thử reload lại trang web của bạn. Nội dung trong component sẽ �
 
 ## Truyền data vào trong component
 
+Giả sử chúng ta muốn hiển thị chi tiết của nhà sản xuất trên ứng dụng của bạn, lưu ý một điều rằng trong components thì chúng ta không thể biết được thông tin chi tiết, Vue hỗ trợ chúng ta truyền data từ file blade vào component cũng như giao tiếp giữ component này với các components khác bằng props. Sử dụng props như sau, trong file _resources/views/welcome.blade.php_ thêm dòng code
+
+```
+ [...]
+    <div id="app">
+       <welcome :title="'This cool app'"></welcome>
+    </div>
+    [...]
+```
+
+Ở đấy chúng ta đã truyền một biến title vào trong components 'welcome' với gía trị là "This coll app". Trong component, để có thể nhận được biết title cũng như là gía trị của nó vừa được truyền vào, bạn thêm dòng code sau vào file _resources/assets/js/components/Welcome.vue_
+
+```
+<template>
+                [...]
+                <div class="title m-b-md">
+                    {{title}}
+                </div>
+
+                [...]
+    </template>
+
+    <script>
+        export default {
+            props : ['title']
+        }
+    </script>
+```
+
+Bạn có thể thấy, với việc sử dụng ký tự {{}}, tôi đã binding giá trị của biến title ra.Bây giờ, hãy reload lại page của bạn, và gía trị của title sẽ hiển thị trên trang web. Bây giờ, chúng ta sẽ truyền giá trị của title vào từ phía server. Thêm đoạn code sau vào file web/route.php
+
+```
+[...]
+    Route::get('/', function () {
+        return view('welcome',
+            [
+                'title' => "An even cooler way to do the title"
+            ]
+        );
+    });
+```
+
+Cập nhật lại file blade như sau
+
+```
+[...]
+    <div id="app">
+       <welcome :title="'{{$title}}'"></welcome>
+    </div>
+    [...]
+```
+
+Điều này cho thấy,trước khi truyền dữ liệu vào components, chúng ta hoàn toàn có thể xử lý chúng bên phía server. Tiếp theo, chúng ta sẽ tạo page thứ 2 cho ứng dụng của mình. Tạo file resources/assets/js/components/Page.vue và thêm đoạn code sau:
+
+```
+<template>
+        <div class="flex-center position-ref full-height">
+            <div class="content">
+                <div class="title m-b-md">
+                    {{title}}
+                </div>
+
+                <div class="links">
+                    <span class="subtitle">Name : {{author.name}}</span><br/>
+                    <span class="subtitle">Role : {{author.role}}</span><br/>
+                    <span class="subtitle">Code : {{author.code}}</span><br/>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        export default {
+            props : ['title', 'author']
+        }
+    </script>
+    <style scoped>
+        html, body {
+            background-color: #fff;
+            color: #939b9f;
+            font-family: 'Raleway', sans-serif;
+            font-weight: 100;
+            height: 100vh;
+            margin: 0;
+        }
+        .title {
+            font-size: 60px;
+        }
+        .subtitle {
+            font-size: 20px;
+        }
+        .full-height {
+            height: 100vh;
+        }
+
+        .flex-center {
+            align-items: center;
+            display: flex;
+            justify-content: center;
+        }
+        .position-ref {
+            position: relative;
+        }
+
+        .top-right {
+            position: absolute;
+            right: 10px;
+            top: 18px;
+        }
+        .content {
+            text-align: center;
+        }
+        .m-b-md {
+            margin-bottom: 30px;
+        }
+    </style>
+```
+
+Giống như page 1, chúng ta cũng truyền và nhận dữ liệu là title và author vào trong components. Đừng quên khai báo nó trong _resources/assets/js/app.js_
+
+```
+ [...]
+
+    Vue.component('welcome', require('./components/Welcome.vue'));
+    Vue.component('page', require('./components/Page.vue'));
+
+    [...]
+```
+
+Tiếp theo, tạo file _resources/views/page.blade.php_ với nội dung sau:
+
+```
+<!doctype html>
+    <html lang="{{ app()->getLocale() }}">
+        <head>
+            <meta charset="utf-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="csrf-token" content="{{ csrf_token() }}">
+
+            <title>Page</title>
+
+            <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
+        </head>
+        <body>
+            <div id="app">
+                <page :title="'{{$title}}'" :author="{{$author}}"></page>
+            </div>
+            <script type="text/javascript" src="js/app.js"></script>
+        </body>
+    </html>
+```
+
+Cuối cùng là file route.web
+
+```
+[...]
+
+    Route::get('/page', function () {
+        return view('page',
+            [
+                'title' => "Page 2 - A little about the Author",
+                'author' => json_encode([
+                        "name" => "Fisayo Afolayan",
+                        "role" => "Software Enginner",
+                        "code" => "Always keeping it clean"
+                ])
+            ]
+        );
+    });
+```
+
+Giờ thì hãy vào url '/page' tr
